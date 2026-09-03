@@ -1,0 +1,13 @@
+# Requirements for loading the precomputed feature files (features/*.pt).
+#
+# The features are already extracted, so loading only needs PyTorch to
+# deserialize the tensors via torch.load. No transformers / audio libraries
+# are required at load time.
+#
+# Install with:
+#   pip install -r requirements.txt
+#
+# A CPU-only install is sufficient for feature loading:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+torch>=2.0

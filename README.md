@@ -1,2 +1,95 @@
-# TiEmoCap: Tibetan Speech-Text Emotion Caption Dataset.
-TiEmoCap is an 8,240‑sample Tibetan speech‑text emotion caption dataset annotated with Chinese emotional captions and evidence information.
+# TiEmoCap — Subjective Evaluation Features
+
+TiEmoCap is an 8,240 sample Tibetan speech‑text emotion caption dataset annotated with Chinese emotional captions and evidence information.
+
+This repository hosts the **precomputed encoder features** of the 150 samples used in the Subjective Evaluation. Each sample is stored as a single `.pt` file containing its audio and text features, ready to be loaded directly without requiring the original waveforms or transcripts.
+
+## Feature Extraction
+
+Features are extracted with the same models used in TiEmoCap training:
+
+| Modality | Model | Output |
+|---|---|---|
+| Audio | [WavLM Large](https://huggingface.co/microsoft/wavlm-large) | `last_hidden_state` |
+| Text | [CINO-Large-v2](https://huggingface.co/hfl/cino-large-v2) | `last_hidden_state` |
+
+Both models produce a **1024-dimensional** hidden state. Sequence length is variable per sample.
+
+## Feature Format
+
+```
+features/{sample_name}.pt
+```
+
+Each `.pt` file is a Python dict saved with `torch.save`:
+
+```python
+{
+    "audio": torch.Tensor,   # (T_a, 1024) float16 — WavLM Large last_hidden_state
+    "text":  torch.Tensor,   # (T_t, 1024) float16 — CINO-Large-v2 last_hidden_state
+}
+```
+
+- `audio`: variable number of audio frames (`T_a`) × 1024.
+- `text`: variable number of tokens (`T_t`) × 1024.
+- Both tensors are stored in `float16`.
+
+Sample names follow `{speaker}_{index}_{emotion}`, e.g. `2079_000023_angry`.
+
+## Setup
+
+Create a conda environment named `test` with Python 3.10 and install the requirements:
+
+```bash
+conda create -n test python=3.10 -y
+conda activate test
+pip install -r requirements.txt
+```
+
+Feature loading only requires PyTorch; a CPU-only install is sufficient.
+
+## Usage
+
+Two self-contained loaders are provided:
+
+| Script | Purpose |
+|---|---|
+| `load_audio_features.py` | Load audio (WavLM Large) features |
+| `load_text_features.py` | Load text (CINO-Large-v2) features |
+
+### Python API
+
+```python
+from load_audio_features import load_audio, load_audio_batch
+from load_text_features import load_text, load_text_batch
+
+# Single sample (float16, matches the stored dtype)
+audio = load_audio("2079_000023_angry")              # (T_a, 1024) float16
+audio = load_audio("2079_000023_angry", to_float=True)  # (T_a, 1024) float32
+text  = load_text("2079_000023_angry")               # (T_t, 1024) float16
+
+# Batch (auto-padded to the longest sequence, returns mask)
+audio, audio_mask = load_audio_batch(["2079_000023_angry", "1023_000038_neutral"])
+text, text_mask   = load_text_batch(["2079_000023_angry", "1023_000038_neutral"])
+```
+
+### Command line
+
+```bash
+python load_audio_features.py --names 2079_000023_angry 1023_000038_neutral
+python load_text_features.py --names 2079_000023_angry 1023_000038_neutral
+```
+
+## Directory Structure
+
+```
+.
+├── README.md
+├── requirements.txt
+├── load_audio_features.py
+├── load_text_features.py
+└── features/
+    ├── 2079_000023_angry.pt
+    ├── 1023_000038_neutral.pt
+    └── ...  # 150 files in total
+```
