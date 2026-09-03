@@ -1,6 +1,6 @@
 # TiEmoCap — Subjective Evaluation Features
 
-TiEmoCap is an 8,240 sample Tibetan speech‑text emotion caption dataset annotated with Chinese emotional captions and evidence information.
+TiEmoCap is an 8,240 sample Tibetan speech-text emotion caption dataset annotated with Chinese emotional captions and evidence information.
 
 This repository hosts the **precomputed encoder features** of the 150 samples used in the Subjective Evaluation. Each sample is stored as a single `.pt` file containing its audio and text features, ready to be loaded directly without requiring the original waveforms or transcripts.
 
